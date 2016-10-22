@@ -30,17 +30,17 @@ public class Translator {
 	public void setObject(string command, int x, int y){
 		switch (command.Split (' ') [0]) {
 			case "for":
-				setCommand (command.Split(' ')[0], x, y);
-				setCommand (command.Split(' ')[1], x, y + 1);
-				setCommand (command.Split(' ')[2], x, y + 2);
+				setCommand (command.Split (' ') [0], x, y);
+				setCommand (command.Split (' ') [1], x, y + 1);
+				setCommand (command.Split (' ') [2], x, y + 2);
 				setCommand ("fend", x + 1, y);
 				setCommand ("fzzz", x + 1, y + 1);
 				setCommand ("fzzz", x + 1, y + 2);
 				break;
 			case "iff":
-				setCommand (command.Split(' ')[0], x, y);
-				setCommand (command.Split(' ')[1], x, y + 1);
-				setCommand (command.Split(' ')[2], x, y + 2);
+				setCommand (command.Split (' ') [0], x, y);
+				setCommand (command.Split (' ') [1], x, y + 1);
+				setCommand (command.Split (' ') [2], x, y + 2);
 				setCommand ("iels", x + 1, y);
 				setCommand ("izzz", x + 1, y + 1);
 				setCommand ("izzz", x + 1, y + 2);
@@ -66,7 +66,7 @@ public class Translator {
 			case "frto": cell = LoadPrefab ("For"); break;
 			case "fend": cell = LoadPrefab ("For"); break;
 			case "fzzz": cell = LoadPrefab ("For"); break;
-			case "fspc": cell = LoadPrefab ("For"); break;
+			case "fmid": cell = LoadPrefab ("For"); break;
 
 			case "iff": cell = LoadPrefab ("If"); break;
 			case "ivar": cell = LoadPrefab ("If"); break;
@@ -74,7 +74,7 @@ public class Translator {
 			case "iels": cell = LoadPrefab ("If"); break;
 			case "iend": cell = LoadPrefab ("If"); break;
 			case "izzz": cell = LoadPrefab ("If"); break;
-			case "ispc": cell = LoadPrefab ("If"); break;
+			case "imid": cell = LoadPrefab ("If"); break;
 
 			case "pdru": cell = LoadPrefab ("Play"); break;
 			case "pgui": cell = LoadPrefab ("Play"); break;
