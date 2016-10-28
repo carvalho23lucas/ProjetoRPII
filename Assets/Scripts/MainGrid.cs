@@ -9,11 +9,12 @@ public class MainGrid : MonoBehaviour {
 	[SerializeField] public GameObject SideMenu;
 
 	private GameObject[,] grid;
-	private Translator translator;
+	private Assembler assembler;
+	private string selectedCommand;
 
 	void Start()
 	{
-		translator = new Translator (width, height);
+		assembler = new Assembler (width, height);
 		GridLayoutGroup gridlg = gameObject.GetComponent<GridLayoutGroup> ();
 		gridlg.constraintCount = width;
 
@@ -26,7 +27,7 @@ public class MainGrid : MonoBehaviour {
 		foreach (Component button in Buttons){
 			string command = button.transform.GetComponent<Metadata>().command;
 			(button as Button).onClick.AddListener (() => { 
-				translator.selectedCommand = command;
+				selectedCommand = command;
 				if (command != ""){
 					switch(command.Split(' ')[0]){
 						case "iif": CheckValidPlaces(3, 3); break;
@@ -49,8 +50,8 @@ public class MainGrid : MonoBehaviour {
 						continue;
 					if (new[]{ "iff", "for", "ielse", "iend", "fend" }.Contains (grid [x, y - 1].GetComponent<Metadata> ().command.Split(' ')[0]))
 						continue;
-					if (translator.selectedCommand != "")
-						if (new[]{ 'i', 'f' }.Contains (translator.selectedCommand [0]))
+					if (selectedCommand != "")
+						if (new[]{ 'i', 'f' }.Contains (selectedCommand [0]))
 							continue;
 					else {
 						string test = grid [x, y - 1].GetComponent<Metadata> ().command;
@@ -80,21 +81,21 @@ public class MainGrid : MonoBehaviour {
 			GameObject.Destroy(child.gameObject);
 		}
 
-		grid = new GameObject[height, width];
-		for (int x = 0; x < height; x++) {
-			for (int y = 0; y < width; y++) {
+		grid = new GameObject[assembler.grid.Count, assembler.grid[0].Length];
+		for (int x = 0; x < assembler.grid.Count; x++) {
+			for (int y = 0; y < assembler.grid[0].Length; y++) {
 				createObject (x, y);
 			}
 		}
 	}
 	void createObject(int x, int y){
-		GameObject cell = Instantiate (translator.getObject(x, y));
+		GameObject cell = Instantiate (assembler.getGameObject(x, y));
 
 		cell.GetComponent<Button>().onClick.AddListener (() => {
 			Metadata meta = cell.transform.GetComponent<Metadata> ();
-			if (translator.selectedCommand != null && (meta.isvalid || translator.selectedCommand == "")){
-				translator.setObject(translator.selectedCommand, meta.x, meta.y);
-				translator.selectedCommand = null;
+			if (selectedCommand != null && (meta.isvalid || selectedCommand == "")){
+				assembler.setObject(selectedCommand, meta.x, meta.y);
+				selectedCommand = null;
 				BuildGrid();
 			}
 		});
