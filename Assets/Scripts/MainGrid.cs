@@ -10,7 +10,7 @@ public class MainGrid : MonoBehaviour {
 
 	private GameObject[,] grid;
 	private Assembler assembler;
-	private string selectedCommand;
+	private string selectedCommand = "";
 
 	void Start()
 	{
@@ -29,49 +29,46 @@ public class MainGrid : MonoBehaviour {
 			(button as Button).onClick.AddListener (() => { 
 				selectedCommand = command;
 				if (command != ""){
-					switch(command.Split(' ')[0]){
-						case "iif": CheckValidPlaces(3, 3); break;
-						case "for": CheckValidPlaces(3, 2); break;
-						default: CheckValidPlaces(1, 1); break;
+					switch(command[0]){
+						case 'i': CheckValidPlaces(3, 5, 'i', 'f', 'v', 'p' ); break;
+						case 'f': CheckValidPlaces(3, 3, 'i', 'f', 'v', 'p'); break;
+						case 'v': CheckValidPlaces(1, 1, 'i', 'f', 'p'); break;
+						case 'p': CheckValidPlaces(1, 1, 'i', 'f', 'v'); break;
 					}
 				}
-				else BuildGrid();
+				else
+					ClearValidPlaces ();
 			});
 		}
 	}
-	void CheckValidPlaces(int w, int h){
+	void CheckValidPlaces(int pieceWidth, int pieceHeight, params char[] invalidPrevious){
 		ClearValidPlaces ();
-		for (int x = 0; x < grid.GetLength (0) - h + 1; x++) {
-			for (int y = 0; y < grid.GetLength (1) - w; y++) {
-				if (grid [x, y].GetComponent<Metadata> ().command != "")
+		for (int i = 0; i < grid.GetLength (0) - pieceHeight + 1; i++) {
+			for (int j = 0; j < grid.GetLength (1) - pieceWidth; j++) {
+				if (grid [i, j].GetComponent<Metadata> ().command != "")
 					continue;
-				if (y > 0){
-					if(grid [x, y - 1].GetComponent<Metadata> ().command == "")
+				if (i > 0) {
+					if (grid [i - 1, 0].GetComponent<Metadata> ().command == "")
 						continue;
-					if (new[]{ "iff", "for", "ielse", "iend", "fend" }.Contains (grid [x, y - 1].GetComponent<Metadata> ().command.Split(' ')[0]))
-						continue;
-					if (selectedCommand != "")
-						if (new[]{ 'i', 'f' }.Contains (selectedCommand [0]))
-							continue;
-					else {
-						string test = grid [x, y - 1].GetComponent<Metadata> ().command;
-						test = test + ".";
-					}
 				}
-				if (y == 0 && x > 0 && grid [x - 1, y].GetComponent<Metadata> ().command == "")
-					continue;
+				if (j > 0){ 
+					if (grid [i, j - 1].GetComponent<Metadata> ().command == "")
+						continue;
+					if (invalidPrevious.Contains (grid [i, j - 1].GetComponent<Metadata> ().command[0]))
+						continue;
+				}
 
-				grid [x, y].GetComponent<Metadata> ().isvalid = true;
-				grid [x, y].GetComponent<RawImage> ().texture = Resources.Load ("Valid") as Texture2D;
+				grid [i, j].GetComponent<Metadata> ().isvalid = true;
+				grid [i, j].GetComponent<RawImage> ().texture = Resources.Load ("Valid") as Texture2D;
 			}
 		}
 	}
 	void ClearValidPlaces(){
-		for (int x = 0; x < grid.GetLength (0); x++) {
-			for (int y = 0; y < grid.GetLength (1); y++) {
-				grid [x, y].GetComponent<Metadata> ().isvalid = false;
-				if (grid [x, y].GetComponent<RawImage> ().texture.name == "Valid")
-					grid [x, y].GetComponent<RawImage> ().texture = Resources.Load ("EmptyCell") as Texture2D;
+		for (int i = 0; i < grid.GetLength (0); i++) {
+			for (int j = 0; j < grid.GetLength (1); j++) {
+				grid [i, j].GetComponent<Metadata> ().isvalid = false;
+				if (grid [i, j].GetComponent<RawImage> ().texture.name == "Valid")
+					grid [i, j].GetComponent<RawImage> ().texture = Resources.Load ("EmptyCell") as Texture2D;
 			}
 		}
 	}
@@ -93,10 +90,16 @@ public class MainGrid : MonoBehaviour {
 
 		cell.GetComponent<Button>().onClick.AddListener (() => {
 			Metadata meta = cell.transform.GetComponent<Metadata> ();
-			if (selectedCommand != null && (meta.isvalid || selectedCommand == "")){
-				assembler.setObject(selectedCommand, meta.x, meta.y);
-				selectedCommand = null;
-				BuildGrid();
+			if (selectedCommand != null){
+				if (selectedCommand == "" && meta.command != ""){
+					assembler.deleteObject(meta.x, meta.y);
+					BuildGrid();
+				}
+				else if (meta.isvalid){
+					assembler.setObject(selectedCommand, meta.x, meta.y);
+					selectedCommand = null;
+					BuildGrid();
+				}
 			}
 		});
 
