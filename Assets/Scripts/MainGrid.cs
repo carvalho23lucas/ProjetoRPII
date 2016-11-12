@@ -59,7 +59,7 @@ public class MainGrid : MonoBehaviour {
 				}
 
 				grid [i, j].GetComponent<Metadata> ().isvalid = true;
-				grid [i, j].GetComponent<RawImage> ().texture = Resources.Load ("Valid") as Texture2D;
+				grid [i, j].GetComponent<RawImage> ().color = Color.gray;
 			}
 		}
 	}
@@ -67,8 +67,8 @@ public class MainGrid : MonoBehaviour {
 		for (int i = 0; i < grid.GetLength (0); i++) {
 			for (int j = 0; j < grid.GetLength (1); j++) {
 				grid [i, j].GetComponent<Metadata> ().isvalid = false;
-				if (grid [i, j].GetComponent<RawImage> ().texture.name == "Valid")
-					grid [i, j].GetComponent<RawImage> ().texture = Resources.Load ("EmptyCell") as Texture2D;
+				if (grid [i, j].GetComponent<RawImage> ().color.Equals(Color.green))
+					grid [i, j].GetComponent<RawImage> ().color = Color.gray;
 			}
 		}
 	}
