@@ -20,6 +20,20 @@ public class Assembler {
 			vect[x] = "";
 		grid.Add (vect);
 	}
+	private void removeEmptyLines(){
+		int lastValid = 0;
+		for (int j = 0; j < grid.Count; j++)
+			if (grid [j] [0] != "")
+				lastValid = j;
+
+		for (int j = 0; j < lastValid; j++) {
+			if (grid [j] [0] == "") {
+				grid.Remove (grid [j--]);
+				addNewLine (grid [0].Length);
+				lastValid--;
+			}
+		}
+	}
 
 	public void setObject(string command, int x, int y){
 		if (command == "") {
@@ -62,9 +76,11 @@ public class Assembler {
 					deleteRecursive (x, y);
 					break;
 				default:
-					grid [x] [y] = "";
+					tiltLine (x, y);
 					break;
 			}
+
+			removeEmptyLines ();
 		}
 	}
 	private string findOrigin (int x, int y){

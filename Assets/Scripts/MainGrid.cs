@@ -7,12 +7,12 @@ using System.Linq;
 public class MainGrid : MonoBehaviour {
 	public int width, height;
 	[SerializeField] public GameObject SideMenu;
-	private static long lastClick = -1;
-	private static int lastXClick = -1, lastYClick = -1;
 
 	private GameObject[,] grid;
 	private Assembler assembler;
 	private string selectedCommand = "";
+	private static long lastClick = -1;
+	private static int lastXClick = -1, lastYClick = -1;
 
 	void Start()
 	{
@@ -24,7 +24,7 @@ public class MainGrid : MonoBehaviour {
 		BuildGrid ();
 	}
 
-	void BuildSideMenu(){
+	private void BuildSideMenu(){
 		Component[] Buttons = SideMenu.GetComponentsInChildren<Button> ();
 		foreach (Component button in Buttons){
 			string command = button.transform.GetComponent<Metadata>().command;
@@ -84,7 +84,7 @@ public class MainGrid : MonoBehaviour {
 				}
 	}
 
-	void BuildGrid(){
+	private void BuildGrid(){
 		ClearGrid ();
 		grid = new GameObject[assembler.grid.Count, assembler.grid [0].Length];
 		for (int x = 0; x < assembler.grid.Count; x++) {
@@ -97,7 +97,7 @@ public class MainGrid : MonoBehaviour {
 		foreach (Transform child in gameObject.transform)
 			GameObject.Destroy(child.gameObject);
 	}
-	void createObject(int x, int y){
+	private void createObject(int x, int y){
 		GameObject cell = Instantiate (assembler.getGameObject(x, y));
 		cell.GetComponent<Button> ().onClick.AddListener (() => {
 			Metadata meta = cell.transform.GetComponent<Metadata> ();
