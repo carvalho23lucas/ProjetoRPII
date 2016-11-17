@@ -7,6 +7,8 @@ using System.Linq;
 public class MainGrid : MonoBehaviour {
 	public int width, height;
 	[SerializeField] public GameObject SideMenu;
+	private static long lastClick = -1;
+	private static int lastXClick = -1, lastYClick = -1;
 
 	private GameObject[,] grid;
 	private Assembler assembler;
@@ -38,10 +40,11 @@ public class MainGrid : MonoBehaviour {
 				}
 				else
 					ClearValidPlaces ();
+				//TODO play a preview of the note here!
 			});
 		}
 	}
-	void CheckValidPlaces(int pieceWidth, int pieceHeight, params char[] invalidPrevious){
+	private void CheckValidPlaces(int pieceWidth, int pieceHeight, params char[] invalidPrevious){
 		ClearValidPlaces ();
 		for (int i = 0; i < grid.GetLength (0) - pieceHeight + 1; i++) {
 			for (int j = 0; j < grid.GetLength (1) - pieceWidth; j++) {
@@ -51,54 +54,74 @@ public class MainGrid : MonoBehaviour {
 					if (grid [i - 1, 0].GetComponent<Metadata> ().command == "")
 						continue;
 				}
-				if (j > 0){ 
+				if (j > 0) {
 					if (grid [i, j - 1].GetComponent<Metadata> ().command == "")
 						continue;
 					if (invalidPrevious.Contains (grid [i, j - 1].GetComponent<Metadata> ().command[0]))
 						continue;
 				}
-
+				if (!ValidRectangle (i, j, pieceWidth, pieceHeight))
+					continue;
+				
 				grid [i, j].GetComponent<Metadata> ().isvalid = true;
 				grid [i, j].GetComponent<RawImage> ().color = Color.gray;
 			}
 		}
 	}
-	void ClearValidPlaces(){
-		for (int i = 0; i < grid.GetLength (0); i++) {
-			for (int j = 0; j < grid.GetLength (1); j++) {
-				grid [i, j].GetComponent<Metadata> ().isvalid = false;
-				if (grid [i, j].GetComponent<RawImage> ().color.Equals(Color.green))
-					grid [i, j].GetComponent<RawImage> ().color = Color.gray;
-			}
-		}
+	private bool ValidRectangle(int x, int y, int pieceWidth, int pieceHeight){
+		for (int i = x; i < x + pieceHeight; i++)
+			for (int j = y; j < y + pieceWidth; j++)
+				if (grid [i, j].GetComponent<Metadata> ().command != "")
+					return false;
+		return true;
+	}
+	private void ClearValidPlaces(){
+		for (int i = 0; i < grid.GetLength (0); i++)
+			for (int j = 0; j < grid.GetLength (1); j++)
+				if (grid [i, j].GetComponent<Metadata> ().isvalid) {
+					grid [i, j].GetComponent<RawImage> ().color = Color.white;
+					grid [i, j].GetComponent<Metadata> ().isvalid = false;
+				}
 	}
 
 	void BuildGrid(){
-		foreach (Transform child in gameObject.transform) {
-			GameObject.Destroy(child.gameObject);
-		}
-
-		grid = new GameObject[assembler.grid.Count, assembler.grid[0].Length];
+		ClearGrid ();
+		grid = new GameObject[assembler.grid.Count, assembler.grid [0].Length];
 		for (int x = 0; x < assembler.grid.Count; x++) {
-			for (int y = 0; y < assembler.grid[0].Length; y++) {
+			for (int y = 0; y < assembler.grid [0].Length; y++) {
 				createObject (x, y);
 			}
 		}
 	}
+	private void ClearGrid(){
+		foreach (Transform child in gameObject.transform)
+			GameObject.Destroy(child.gameObject);
+	}
 	void createObject(int x, int y){
 		GameObject cell = Instantiate (assembler.getGameObject(x, y));
-
-		cell.GetComponent<Button>().onClick.AddListener (() => {
+		cell.GetComponent<Button> ().onClick.AddListener (() => {
 			Metadata meta = cell.transform.GetComponent<Metadata> ();
-			if (selectedCommand != null){
-				if (selectedCommand == "" && meta.command != ""){
-					assembler.deleteObject(meta.x, meta.y);
-					BuildGrid();
-				}
-				else if (meta.isvalid){
-					assembler.setObject(selectedCommand, meta.x, meta.y);
+
+			long currentClick = System.DateTime.Now.Ticks / System.TimeSpan.TicksPerMillisecond;
+			if (currentClick - lastClick < 3000 && lastXClick == meta.x && lastYClick == meta.y) {
+				selectedCommand = "";
+				lastClick = lastXClick = lastYClick = -1;
+			}
+			else {
+				lastClick = currentClick;
+				lastXClick = meta.x;
+				lastYClick = meta.y;
+			}
+
+			if (selectedCommand != null) {
+				if (selectedCommand == "" && meta.command != "") {
+					assembler.deleteObject (meta.x, meta.y);
 					selectedCommand = null;
-					BuildGrid();
+					BuildGrid ();
+				} else if (meta.isvalid) {
+					assembler.setObject (selectedCommand, meta.x, meta.y);
+					selectedCommand = null;
+					BuildGrid ();
 				}
 			}
 		});

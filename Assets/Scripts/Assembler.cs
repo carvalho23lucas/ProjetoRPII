@@ -22,6 +22,10 @@ public class Assembler {
 	}
 
 	public void setObject(string command, int x, int y){
+		if (command == "") {
+			setCommand (command, x, y);
+			return;
+		}
 		switch (command[0]) {
 			case 'f':
 				setCommand ("for",   x,     y);	 setCommand ("fvar", x,     y + 1);	 setCommand ("frto", x,     y + 2);
@@ -40,7 +44,7 @@ public class Assembler {
 				break;
 		}
 	}
-	public void setCommand(string command, int x, int y){
+	private void setCommand(string command, int x, int y){
 		while (grid.Count <= x) addNewLine (grid [0].Length);
 		grid[x][y] = command;
 	}
@@ -53,13 +57,13 @@ public class Assembler {
 			y = int.Parse (trueOrigin [1]);
 
 			switch (grid [x] [y] [0]) {
-			case 'i':
-			case 'f':
-				deleteRecursive (x, y);
-				break;
-			default:
-				grid [x] [y] = "";
-				break;
+				case 'i':
+				case 'f':
+					deleteRecursive (x, y);
+					break;
+				default:
+					grid [x] [y] = "";
+					break;
 			}
 		}
 	}
@@ -80,13 +84,13 @@ public class Assembler {
 		} else if (new[]{ "midfr", "midif" }.Contains (grid [x] [y])) {
 			tiltLine (x, y);
 			deleteRecursive (x + 1, y);
-		} else if (new[]{ "for", "iif", "iels" }.Contains (grid [x] [y])) {
+		} else if (new[]{ "for", "iff", "iels" }.Contains (grid [x] [y])) {
 			kill3 (x, y);
 			deleteRecursive (x + 1, y);
 		}
 	}
 	private void kill3 (int x, int y){
-		grid [x] [y] = grid [x + 1] [y] = grid [x + 2] [y] = "";
+		grid [x] [y] = grid [x] [y + 1] = grid [x] [y + 2] = "";
 	}
 	private void tiltLine(int x, int y){
 		for (int i = y; i < grid [x].Length - 2; i++) {
