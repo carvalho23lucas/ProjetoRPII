@@ -13,26 +13,27 @@ public class Assembler {
 		grid = new List<string[]>();
 		for (int x = 0; x < height; x++)
 			addNewLine (width);
-	}
+  	}
 	private void addNewLine(int width){
 		string[] vect = new string[width];
 		for (int x = 0; x < width; x++)
 			vect[x] = "";
 		grid.Add (vect);
-	}
-	private void removeEmptyLines(){
-		int lastValid = 0;
-		for (int j = 0; j < grid.Count; j++)
-			if (grid [j] [0] != "")
-				lastValid = j;
+  	}
 
-		for (int j = 0; j < lastValid; j++) {
-			if (grid [j] [0] == "") {
-				grid.Remove (grid [j--]);
-				addNewLine (grid [0].Length);
-				lastValid--;
+	private void insertLine(int i){
+		string[] vect = new string[grid [0].Length];
+		for (int x = 0; x < grid [0].Length; x++)
+			vect[x] = "";
+		grid.Insert (i, vect);
+	}
+	private void removeLine(int i){
+		for (int j = 0; j < grid [j].Length; j++) {
+			if (grid [i] [j] != "" && grid [i] [j] [0] != 'm') {
+				deleteObject (i, j);
 			}
 		}
+		removeEmptyLines ();
 	}
 
 	public void setObject(string command, int x, int y){
@@ -111,6 +112,20 @@ public class Assembler {
 	private void tiltLine(int x, int y){
 		for (int i = y; i < grid [x].Length - 2; i++) {
 			grid [x] [i] = grid [x] [i + 1];
+		}
+	}
+	private void removeEmptyLines(){
+		int lastValid = 0;
+		for (int i = 0; i < grid.Count; i++)
+			if (grid [i] [0] != "")
+				lastValid = i;
+
+		for (int i = 0; i < lastValid; i++) {
+			if (grid [i] [0] == "") {
+				grid.Remove (grid [i--]);
+				addNewLine (grid [0].Length);
+				lastValid--;
+			}
 		}
 	}
 
