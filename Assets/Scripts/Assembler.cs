@@ -18,22 +18,39 @@ public class Assembler {
 		string[] vect = new string[width];
 		for (int x = 0; x < width; x++)
 			vect[x] = "";
+		vect [width - 1] = "bar";
 		grid.Add (vect);
   	}
 
-	private void insertLine(int i){
+	public void insertLine(int i){
 		string[] vect = new string[grid [0].Length];
 		for (int x = 0; x < grid [0].Length; x++)
-			vect[x] = "";
+			vect[x] = continueLoopsOrEmpty(i, x);
+		vect [grid [0].Length - 1] = "bar";
 		grid.Insert (i, vect);
 	}
-	private void removeLine(int i){
-		for (int j = 0; j < grid [j].Length; j++) {
+	public void removeLine(int i){
+		for (int j = 0; j < grid [0].Length; j++) {
 			if (grid [i] [j] != "" && grid [i] [j] [0] != 'm') {
-				deleteObject (i, j);
+				deleteObject (i, j, false);
 			}
 		}
-		removeEmptyLines ();
+		grid.Remove (grid [i]);
+	}
+	private string continueLoopsOrEmpty(int i, int x){
+		if (i == 0)
+			return "";
+		if (grid [i - 1] [x] == "")
+			return "";
+		if (grid [i - 1] [x] [0] != 'm'){
+			if (grid [i - 1] [x] == "for")
+				return "midfr";
+			else if (new[]{ "iff", "iels" }.Contains (grid [i - 1] [x]))
+				return "midif";
+			else
+				return "";
+		}
+		return grid [i - 1] [x];
 	}
 
 	public void setObject(string command, int x, int y){
@@ -64,7 +81,7 @@ public class Assembler {
 		grid[x][y] = command;
 	}
 
-	public void deleteObject (int x, int y){
+	public void deleteObject (int x, int y, bool removeEmptyAuto = true){
 		string command = grid [x] [y];
 		if (command != "") {
 			string[] trueOrigin = findOrigin (x, y).Split(',');
@@ -81,7 +98,8 @@ public class Assembler {
 					break;
 			}
 
-			removeEmptyLines ();
+			if (removeEmptyAuto)
+				removeEmptyLines ();
 		}
 	}
 	private string findOrigin (int x, int y){
@@ -156,6 +174,8 @@ public class Assembler {
 			case "pbas": cell = LoadPrefab ("Play/PlayBass"); break;
 			case "ppia": cell = LoadPrefab ("Play/PlayPiano"); break;
 			case "psin": cell = LoadPrefab ("Play/PlaySint"); break;
+				
+			case "bar": cell = LoadPrefab ("AddRemove"); break;
 
 			default: cell = LoadPrefab("EmptyCell"); break;
 		}

@@ -99,32 +99,45 @@ public class MainGrid : MonoBehaviour {
 	}
 	private void createObject(int x, int y){
 		GameObject cell = Instantiate (assembler.getGameObject(x, y));
-		cell.GetComponent<Button> ().onClick.AddListener (() => {
-			Metadata meta = cell.transform.GetComponent<Metadata> ();
-
-			long currentClick = System.DateTime.Now.Ticks / System.TimeSpan.TicksPerMillisecond;
-			if (currentClick - lastClick < 3000 && lastXClick == meta.x && lastYClick == meta.y) {
-				selectedCommand = "";
-				lastClick = lastXClick = lastYClick = -1;
-			}
-			else {
-				lastClick = currentClick;
-				lastXClick = meta.x;
-				lastYClick = meta.y;
-			}
-
-			if (selectedCommand != null) {
-				if (selectedCommand == "" && meta.command != "") {
-					assembler.deleteObject (meta.x, meta.y);
-					selectedCommand = null;
+		if (assembler.grid [x] [y] == "bar") {
+			Component[] Buttons = cell.GetComponentsInChildren<Button> ();
+			foreach (Component Button in Buttons) {
+				string command = Button.transform.GetComponent<Metadata>().command;
+				Button.transform.GetComponent<Button> ().onClick.AddListener (() => {
+					if (command == "badd")
+						assembler.insertLine(x);
+					else if (command == "brem")
+						assembler.removeLine(x);
 					BuildGrid ();
-				} else if (meta.isvalid) {
-					assembler.setObject (selectedCommand, meta.x, meta.y);
-					selectedCommand = null;
-					BuildGrid ();
+				});
+			}
+		} else {
+			cell.GetComponent<Button> ().onClick.AddListener (() => {
+				Metadata meta = cell.transform.GetComponent<Metadata> ();
+
+				long currentClick = System.DateTime.Now.Ticks / System.TimeSpan.TicksPerMillisecond;
+				if (currentClick - lastClick < 3000 && lastXClick == meta.x && lastYClick == meta.y) {
+					selectedCommand = "";
+					lastClick = lastXClick = lastYClick = -1;
+				} else {
+					lastClick = currentClick;
+					lastXClick = meta.x;
+					lastYClick = meta.y;
 				}
-			}
-		});
+
+				if (selectedCommand != null) {
+					if (selectedCommand == "" && meta.command != "") {
+						assembler.deleteObject (meta.x, meta.y);
+						selectedCommand = null;
+						BuildGrid ();
+					} else if (meta.isvalid) {
+						assembler.setObject (selectedCommand, meta.x, meta.y);
+						selectedCommand = null;
+						BuildGrid ();
+					}
+				}
+			});
+		}
 
 		cell.transform.SetParent(gameObject.transform, false);
 		grid [x, y] = cell;
