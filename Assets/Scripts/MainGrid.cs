@@ -138,14 +138,6 @@ public class MainGrid : MonoBehaviour {
 					}
 				}
 			});
-			Dropdown[] Dropdowns = cell.GetComponentsInChildren<Dropdown> ();
-			InputField[] InputFields = cell.GetComponentsInChildren<InputField> ();
-			foreach (Component DropDown in Dropdowns) {
-
-			}
-			foreach (Component InputField in InputFields) {
-
-			}
 		}
 
 		cell.transform.SetParent(gameObject.transform, false);
@@ -158,18 +150,49 @@ public class MainGrid : MonoBehaviour {
 		InputField[] InputFields = cell.GetComponentsInChildren<InputField> ();
 
 		switch (command.Split (' ')[0]) {
-			case "var": break;
+			case "var": 
+				InputFields [0].text = command.Split (' ') [1].Split (';') [0];
+				Dropdowns [0].value = int.Parse(command.Split (' ') [1].Split (';') [1]);
+				Dropdowns [0].RefreshShownValue ();
+				InputFields [0].onEndEdit.AddListener (delegate{ setObjectParams(x, y, InputFields [0].text, 0); });
+			Dropdowns [0].onValueChanged.AddListener (delegate{ setObjectParams(x, y, Dropdowns [0].value.ToString(), 1); });
+				break;
 
-			case "fvar": break;
-			case "frto": break;
-			
-			case "ivar": break;
+			case "fvar": 
+				InputFields [0].text = command.Split (' ') [1].Split (';') [0];
+				InputFields [1].text = command.Split (' ') [1].Split (';') [1];
+				InputFields [0].onEndEdit.AddListener (delegate{ setObjectParams(x, y, InputFields [0].text, 0); });
+				InputFields [1].onEndEdit.AddListener (delegate{ setObjectParams(x, y, InputFields [1].text, 1); });
+				break;
+			case "frto": 
+				InputFields [0].text = command.Split (' ') [1];
+				InputFields [0].onEndEdit.AddListener (delegate{ setObjectParams(x, y, InputFields [0].text, 0); });
+				break;
+
+			case "ivar": 
+				InputFields [0].text = command.Split (' ') [1].Split (';') [0];
+				Dropdowns [0].value = int.Parse(command.Split (' ') [1].Split (';') [1]);
+				Dropdowns [0].RefreshShownValue ();
+				InputFields [1].text = command.Split (' ') [1].Split (';') [2];
+				InputFields [0].onEndEdit.AddListener (delegate{ setObjectParams(x, y, InputFields [0].text, 0); });
+				Dropdowns [0].onValueChanged.AddListener (delegate{ setObjectParams(x, y, Dropdowns [0].value.ToString(), 1); });
+				InputFields [1].onEndEdit.AddListener (delegate{ setObjectParams(x, y, InputFields [1].text, 2); });
+				break;
 
 			case "pdru": 
 			case "pgui": 
 			case "pbas": 
 			case "ppia": 
-			case "psin": break;
+			case "psin": 
+				InputFields [0].text = command.Split (' ') [1];
+				InputFields [0].onEndEdit.AddListener (delegate{ setObjectParams(x, y, InputFields [1].text, 0); });
+				break;
 		}
+	}
+	private void setObjectParams(int x, int y, string arg, int argpos){
+		string[] command = assembler.grid [x] [y].Split(' ');
+		string[] args = command [1].Split (';');
+		args [argpos] = arg;
+		assembler.grid [x] [y] = string.Join (" ", new[]{ command [0], string.Join (";", args) });
 	}
 }
