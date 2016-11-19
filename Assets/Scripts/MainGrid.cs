@@ -116,7 +116,7 @@ public class MainGrid : MonoBehaviour {
 				Metadata meta = cell.transform.GetComponent<Metadata> ();
 
 				long currentClick = System.DateTime.Now.Ticks / System.TimeSpan.TicksPerMillisecond;
-				if (currentClick - lastClick < 3000 && lastXClick == meta.x && lastYClick == meta.y) {
+				if (currentClick - lastClick < 300 && lastXClick == meta.x && lastYClick == meta.y) {
 					selectedCommand = "";
 					lastClick = lastXClick = lastYClick = -1;
 				} else {
