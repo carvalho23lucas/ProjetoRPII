@@ -8,6 +8,8 @@ using UnityEditor;
 [System.Serializable]
 public class Assembler {
 	public List<string[]> grid;
+	private int varCount = 0;
+	private int fvarCount = 0;
 
 	public Assembler(int width, int height){
 		grid = new List<string[]>();
@@ -37,6 +39,27 @@ public class Assembler {
 		}
 		grid.Remove (grid [i]);
 	}
+	private int useOrCreateVarLine(int i, string varName, string playNumber){
+		int emptyPlace = 0;
+		int varCount = 0;
+		if (i == 0) insertLine (i++);
+		for (int j = 0; j < grid[i].Length; j++){
+			if (grid [i - 1] [j] != "") {
+				if (new[]{ 'm', 'f', 'i' }.Contains (grid [i - 1] [j] [0]))
+					if (!grid [i - 1] [j].EndsWith ("end"))
+						emptyPlace++;
+				if (new[]{ 'v' }.Contains (grid [i - 1] [j] [0]))
+					varCount++;
+				if (new[]{ 'f', 'i', 'p' }.Contains (grid [i - 1] [j] [0]) || j == grid [i - 1].Length - 1) {
+					insertLine (i++);
+					varCount = 0;
+					break;
+				}
+			} else break;
+		}
+		grid [i - 1] [emptyPlace + varCount] = "var " + varName + ";" + playNumber;
+		return i;
+	}
 	private string continueLoopsOrEmpty(int i, int x){
 		if (i == 0)
 			return "";
@@ -58,18 +81,24 @@ public class Assembler {
 			setCommand (command, x, y);
 			return;
 		}
-		switch (command[0]) {
+		switch (command [0]) {
 			case 'f':
-				setCommand ("for",   x,     y);	 setCommand ("fvar", x,     y + 1);	 setCommand ("frto", x,     y + 2);
+				string fvarName = ("fvar" + fvarCount++).Replace ("fvar0", "fvar");
+				setCommand ("for", x, y); setCommand ("fvar " + fvarName + ";0", x, y + 1); setCommand ("frto 0", x, y + 2);
 				setCommand ("midfr", x + 1, y);
-				setCommand ("fend",  x + 2, y);	 setCommand ("fzzz", x + 2, y + 1);	 setCommand ("fzzz", x + 2, y + 2);
+				setCommand ("fend", x + 2, y); setCommand ("fzzz", x + 2, y + 1); setCommand ("fzzz", x + 2, y + 2);
 				break;
 			case 'i':
-				setCommand ("iff",   x,     y);	 setCommand ("ivar", x,     y + 1);	 setCommand ("ifdo", x,     y + 2);
+				setCommand ("iff", x, y); setCommand ("ivar var;==;0", x, y + 1); setCommand ("ifdo", x, y + 2);
 				setCommand ("midif", x + 1, y);
-				setCommand ("iels",  x + 2, y);	 setCommand ("izzz", x + 2, y + 1);	 setCommand ("izzz", x + 2, y + 2);
+				setCommand ("iels", x + 2, y); setCommand ("izzz", x + 2, y + 1); setCommand ("izzz", x + 2, y + 2);
 				setCommand ("midif", x + 3, y);
-				setCommand ("iend",  x + 4, y);	 setCommand ("izzz", x + 4, y + 1);	 setCommand ("izzz", x + 4, y + 2);
+				setCommand ("iend", x + 4, y); setCommand ("izzz", x + 4, y + 1); setCommand ("izzz", x + 4, y + 2);
+				break;
+			case 'p':
+				string varName = ("var" + varCount++).Replace ("var0", "var");
+				x = useOrCreateVarLine (x, varName, command.Split (' ') [1]);
+				setCommand (command.Split (' ') [0] + " " + varName, x, y);
 				break;
 			default: 
 				setCommand (command, x, y);
@@ -131,6 +160,7 @@ public class Assembler {
 		for (int i = y; i < grid [x].Length - 2; i++) {
 			grid [x] [i] = grid [x] [i + 1];
 		}
+		grid [x] [grid [x].Length - 2] = "";
 	}
 	private void removeEmptyLines(){
 		int lastValid = 0;

@@ -99,15 +99,16 @@ public class MainGrid : MonoBehaviour {
 	}
 	private void createObject(int x, int y){
 		GameObject cell = Instantiate (assembler.getGameObject(x, y));
+		populateFields (cell, x, y);
 		if (assembler.grid [x] [y] == "bar") {
 			Component[] Buttons = cell.GetComponentsInChildren<Button> ();
 			foreach (Component Button in Buttons) {
-				string command = Button.transform.GetComponent<Metadata>().command;
+				string command = Button.transform.GetComponent<Metadata> ().command;
 				Button.transform.GetComponent<Button> ().onClick.AddListener (() => {
 					if (command == "badd")
-						assembler.insertLine(x);
+						assembler.insertLine (x);
 					else if (command == "brem")
-						assembler.removeLine(x);
+						assembler.removeLine (x);
 					BuildGrid ();
 				});
 			}
@@ -137,9 +138,38 @@ public class MainGrid : MonoBehaviour {
 					}
 				}
 			});
+			Dropdown[] Dropdowns = cell.GetComponentsInChildren<Dropdown> ();
+			InputField[] InputFields = cell.GetComponentsInChildren<InputField> ();
+			foreach (Component DropDown in Dropdowns) {
+
+			}
+			foreach (Component InputField in InputFields) {
+
+			}
 		}
 
 		cell.transform.SetParent(gameObject.transform, false);
 		grid [x, y] = cell;
+	}
+	private void populateFields(GameObject cell, int x, int y)
+	{
+		string command = assembler.grid [x] [y];
+		Dropdown[] Dropdowns = cell.GetComponentsInChildren<Dropdown> ();
+		InputField[] InputFields = cell.GetComponentsInChildren<InputField> ();
+
+		switch (command.Split (' ')[0]) {
+			case "var": break;
+
+			case "fvar": break;
+			case "frto": break;
+			
+			case "ivar": break;
+
+			case "pdru": 
+			case "pgui": 
+			case "pbas": 
+			case "ppia": 
+			case "psin": break;
+		}
 	}
 }
