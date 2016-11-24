@@ -7,9 +7,14 @@ using System.Linq;
 public class MainGrid : MonoBehaviour {
 	public int width, height;
 	[SerializeField] public GameObject SideMenu;
+	[SerializeField] public GameObject UpperMenu;
 
 	private GameObject[,] grid;
+
 	private Assembler assembler;
+	private Interpreter interpreter;
+	private Player player;
+
 	private string selectedCommand = "";
 	private static long lastClick = -1;
 	private static int lastXClick = -1, lastYClick = -1;
@@ -17,11 +22,27 @@ public class MainGrid : MonoBehaviour {
 	void Start()
 	{
 		assembler = new Assembler (width, height);
+		player = new Player (GetComponent<AudioSource> ());
+		interpreter = new Interpreter (assembler, player);
+
 		GridLayoutGroup gridlg = gameObject.GetComponent<GridLayoutGroup> ();
 		gridlg.constraintCount = width;
 
+		BuildUpperMenu ();
 		BuildSideMenu ();
 		BuildGrid ();
+	}
+
+	private void BuildUpperMenu(){
+		Button[] Buttons = UpperMenu.GetComponentsInChildren<Button> ();
+		foreach (Button button in Buttons){
+			string command = button.transform.GetComponent<Metadata>().command;
+			switch (command) {
+				case "bplay": (button as Button).onClick.AddListener (() => { interpreter.StartExecution(); });	break;
+				case "bpause": (button as Button).onClick.AddListener (() => { interpreter.InterruptExecution(); }); break;
+				case "bstop": (button as Button).onClick.AddListener (() => { interpreter.StopExecution(); }); break;
+			}
+		}
 	}
 
 	private void BuildSideMenu(){
@@ -35,12 +56,14 @@ public class MainGrid : MonoBehaviour {
 						case 'i': CheckValidPlaces(3, 5, 'i', 'f', 'v', 'p' ); break;
 						case 'f': CheckValidPlaces(3, 3, 'i', 'f', 'v', 'p'); break;
 						case 'v': CheckValidPlaces(1, 1, 'i', 'f', 'p'); break;
-						case 'p': CheckValidPlaces(1, 1, 'i', 'f', 'v'); break;
+						case 'p':
+							CheckValidPlaces(1, 1, 'i', 'f', 'v');
+							player.PlayNote(command.Split(' ')[0], int.Parse(command.Split(' ')[1]));
+							break;
 					}
 				}
 				else
 					ClearValidPlaces ();
-				//TODO play a preview of the note here!
 			});
 		}
 	}

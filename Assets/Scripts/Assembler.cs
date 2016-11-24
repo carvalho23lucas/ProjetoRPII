@@ -10,6 +10,7 @@ public class Assembler {
 	public List<string[]> grid;
 	private int varCount = 0;
 	private int fvarCount = 0;
+	private static bool createdVarOnce = false;
 
 	public Assembler(int width, int height){
 		grid = new List<string[]>();
@@ -58,6 +59,7 @@ public class Assembler {
 			} else break;
 		}
 		grid [i - 1] [emptyPlace + varCount] = "var " + varName + ";" + playNumber;
+		createdVarOnce = true;
 		return i;
 	}
 	private string continueLoopsOrEmpty(int i, int x){
@@ -96,8 +98,8 @@ public class Assembler {
 				setCommand ("iend", x + 4, y); setCommand ("izzz", x + 4, y + 1); setCommand ("izzz", x + 4, y + 2);
 				break;
 			case 'p':
-				string varName = ("var" + varCount++).Replace ("var0", "var");
-				x = useOrCreateVarLine (x, varName, command.Split (' ') [1]);
+				string varName = !createdVarOnce ? ("var" + varCount++).Replace ("var0", "var") : "var";
+				if (!createdVarOnce) x = useOrCreateVarLine (x, varName, command.Split (' ') [1]);
 				setCommand (command.Split (' ') [0] + " " + varName, x, y);
 				break;
 			default: 
