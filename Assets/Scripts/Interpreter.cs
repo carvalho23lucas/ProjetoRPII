@@ -9,9 +9,11 @@ using UnityEditor;
 [System.Serializable]
 public class Interpreter
 {
-	private ManualResetEvent mre = new ManualResetEvent (false);
 	private Assembler assembler;
 	private Player player;
+	private bool isPlaying = false;
+	private bool isPaused = false;
+	private bool isStopped = false;
 	public int lineNumber = 0;
 
 	public Interpreter (Assembler assembler, Player player)
@@ -20,36 +22,51 @@ public class Interpreter
 		this.player = player;
 	}
 
-	public void StartExecution ()
+	public IEnumerator StartExecution ()
 	{
-		ExecuteAllLines ();
-		//Thread t = new Thread (new ThreadStart (ExecuteAllLines));
-		//t.Start ();
-		//mre.Set ();
-	}
-	public void InterruptExecution ()
-	{
-
-	}
-	public void StopExecution ()
-	{
-
-	}
-
-	public void ExecuteAllLines ()
-	{
+		if (isPlaying)
+			yield break;
+		if (isPaused && !isStopped) {
+			player.ResumeMusic ();
+			isPaused = false;
+			yield break;
+		}
+		player.StopMusic ();
+		isPaused = isStopped = false;
+		isPlaying = true;
 		while (true) {
 			if (lineNumber < 0 || lineNumber >= assembler.grid.Count)
 				break;
-			ExecuteLine (assembler.grid [lineNumber++]);
+
+			if (ExecuteCell (assembler.grid [lineNumber++], 0)) {
+				yield return WaitForSecondsOrStop (8);
+			}
+
+			while (isPaused)
+				if (isStopped)
+					yield break;
+				else
+					yield return null;
+			if (isStopped) 
+				yield break;
 		}
+		lineNumber = 0;
 	}
-	private void ExecuteLine (string[] line)
+	public void InterruptExecution ()
 	{
-		if (ExecuteCell (line, 0)) {
-			Thread.Sleep (8000);
-		}
+		isPlaying = false;
+		isPaused = true;
+		player.PauseMusic ();
 	}
+	public void StopExecution ()
+	{
+		lineNumber = 0;
+		isPlaying = false;
+		isPaused = false;
+		isStopped = true;
+		player.StopMusic ();
+	}
+
 	private bool ExecuteCell (string[] line, int i)
 	{
 		if (line [i] == "")
@@ -66,7 +83,7 @@ public class Interpreter
 				setVariable (parameters [0], ParseIntOrDefault (parameters [1]));
 				ExecuteCell (line, i + 1);
 				return false;
-		case 'p':
+			case 'p':
 				player.PlayNote (line [i].Split (' ') [0], getVariable (line [i].Split (' ') [1]));
 				ExecuteCell (line, i + 1);
 				return true;
@@ -89,7 +106,7 @@ public class Interpreter
 					}
 
 					if (!compare (parameters [0], 4, ParseIntOrDefault (parameters [2]))) {
-						line [i + 1] = line [i + 1].Split (' ') [0].Replace ("fvar*", "fvar") + parameters [0] + ";" + parameters [1];
+						line [i + 1] = line [i + 1].Split (' ') [0].Replace ("fvar*", "fvar") + " " + parameters [0] + ";" + parameters [1];
 						removeVariable (lineNumber);
 						lineNumber = findForEnd (lineNumber, i) + 1;
 					}
@@ -107,6 +124,15 @@ public class Interpreter
 	{
 		int result;
 		return int.TryParse (value, out result) ? result : 0;
+	}
+	private IEnumerator WaitForSecondsOrStop(float seconds)
+	{
+		while (seconds > 0.0 && !isStopped)
+		{
+			if (!isPaused)
+					seconds -= Time.deltaTime;
+			yield return null;
+		}
 	}
 
 	private Dictionary<string, string> variables = new Dictionary<string, string> ();

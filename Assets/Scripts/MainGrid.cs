@@ -21,8 +21,12 @@ public class MainGrid : MonoBehaviour {
 
 	void Start()
 	{
+		AudioSource[] sources = new AudioSource[10];
+		for (int i = 0; i < sources.Length; i++)
+			sources[i] = gameObject.AddComponent<AudioSource>();
+		
 		assembler = new Assembler (width, height);
-		player = new Player (GetComponent<AudioSource> ());
+		player = new Player (sources);
 		interpreter = new Interpreter (assembler, player);
 
 		GridLayoutGroup gridlg = gameObject.GetComponent<GridLayoutGroup> ();
@@ -38,7 +42,7 @@ public class MainGrid : MonoBehaviour {
 		foreach (Button button in Buttons){
 			string command = button.transform.GetComponent<Metadata>().command;
 			switch (command) {
-				case "bplay": (button as Button).onClick.AddListener (() => { interpreter.StartExecution(); });	break;
+				case "bplay": (button as Button).onClick.AddListener (() => { StartCoroutine(interpreter.StartExecution()); });	break;
 				case "bpause": (button as Button).onClick.AddListener (() => { interpreter.InterruptExecution(); }); break;
 				case "bstop": (button as Button).onClick.AddListener (() => { interpreter.StopExecution(); }); break;
 			}
@@ -58,6 +62,7 @@ public class MainGrid : MonoBehaviour {
 						case 'v': CheckValidPlaces(1, 1, 'i', 'f', 'p'); break;
 						case 'p':
 							CheckValidPlaces(1, 1, 'i', 'f', 'v');
+							player.StopMusic();
 							player.PlayNote(command.Split(' ')[0], int.Parse(command.Split(' ')[1]));
 							break;
 					}
@@ -213,9 +218,11 @@ public class MainGrid : MonoBehaviour {
 		}
 	}
 	private void setObjectParams(int x, int y, string arg, int argpos){
-		string[] command = assembler.grid [x] [y].Split(' ');
+		string[] command = assembler.grid [x] [y].Split (' ');
 		string[] args = command [1].Split (';');
 		args [argpos] = arg;
+		for (int i = 0; i < args.Length; i++)
+			args[i] = args[i].Replace(";", "").Replace(" ", "").Replace(",", "");
 		assembler.grid [x] [y] = string.Join (" ", new[]{ command [0], string.Join (";", args) });
 	}
 }
