@@ -46,6 +46,7 @@
   </ItemGroup>
   <ItemGroup>
      <Compile Include="Assets\Scripts\Assembler.cs" />
+     <Compile Include="Assets\Scripts\IOManager.cs" />
      <Compile Include="Assets\Scripts\Interpreter.cs" />
      <Compile Include="Assets\Scripts\MainGrid.cs" />
      <Compile Include="Assets\Scripts\Metadata.cs" />

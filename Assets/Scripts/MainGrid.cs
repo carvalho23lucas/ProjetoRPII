@@ -14,6 +14,7 @@ public class MainGrid : MonoBehaviour {
 	private Assembler assembler;
 	private Interpreter interpreter;
 	private Player player;
+	private IOManager ioManager;
 
 	private string selectedCommand = "";
 	private static long lastClick = -1;
@@ -28,6 +29,7 @@ public class MainGrid : MonoBehaviour {
 		assembler = new Assembler (width, height);
 		player = new Player (sources);
 		interpreter = new Interpreter (assembler, player);
+		ioManager = new IOManager ();
 
 		GridLayoutGroup gridlg = gameObject.GetComponent<GridLayoutGroup> ();
 		gridlg.constraintCount = width;
@@ -224,5 +226,13 @@ public class MainGrid : MonoBehaviour {
 		for (int i = 0; i < args.Length; i++)
 			args[i] = args[i].Replace(";", "").Replace(" ", "").Replace(",", "");
 		assembler.grid [x] [y] = string.Join (" ", new[]{ command [0], string.Join (";", args) });
+	}
+
+	private void LoadGrid(){
+		assembler.grid = ioManager.LoadFile ();
+		BuildGrid ();
+	}
+	private void SaveGrid(){
+		ioManager.SaveFile (assembler.grid);
 	}
 }
