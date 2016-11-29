@@ -91,7 +91,7 @@ public class Assembler {
 				setCommand ("fend", x + 2, y); setCommand ("fzzz", x + 2, y + 1); setCommand ("fzzz", x + 2, y + 2);
 				break;
 			case 'i':
-				setCommand ("iff", x, y); setCommand ("ivar var;0;1", x, y + 1); setCommand ("ifdo", x, y + 2);
+				setCommand ("iff", x, y); setCommand ("ivar var;1;1", x, y + 1); setCommand ("ifdo", x, y + 2);
 				setCommand ("midif", x + 1, y);
 				setCommand ("iels", x + 2, y); setCommand ("izzz", x + 2, y + 1); setCommand ("izzz", x + 2, y + 2);
 				setCommand ("midif", x + 3, y);
@@ -101,6 +101,10 @@ public class Assembler {
 				string varName = !createdVarOnce ? ("var" + varCount++).Replace ("var0", "var") : "var";
 				if (!createdVarOnce) x = useOrCreateVarLine (x, varName, command.Split (' ') [1]);
 				setCommand (command.Split (' ') [0] + " " + varName, x, y);
+				break;
+			case 'v':
+				string vvarName = ("var" + varCount++).Replace ("var0", "var");
+				setCommand ("var " + vvarName + ";1", x, y);
 				break;
 			default: 
 				setCommand (command, x, y);

@@ -182,10 +182,10 @@ public class MainGrid : MonoBehaviour {
 		switch (command.Split (' ')[0]) {
 			case "var": 
 				InputFields [0].text = command.Split (' ') [1].Split (';') [0];
-				Dropdowns [0].value = int.Parse(command.Split (' ') [1].Split (';') [1]);
+				Dropdowns [0].value = int.Parse(command.Split (' ') [1].Split (';') [1]) - 1;
 				Dropdowns [0].RefreshShownValue ();
 				InputFields [0].onEndEdit.AddListener (delegate{ setObjectParams(x, y, InputFields [0].text, 0); });
-			Dropdowns [0].onValueChanged.AddListener (delegate{ setObjectParams(x, y, Dropdowns [0].value.ToString(), 1); });
+				Dropdowns [0].onValueChanged.AddListener (delegate{ setObjectParams(x, y, (Dropdowns [0].value + 1).ToString(), 1); });
 				break;
 
 			case "fvar": 
@@ -201,11 +201,11 @@ public class MainGrid : MonoBehaviour {
 
 			case "ivar": 
 				InputFields [0].text = command.Split (' ') [1].Split (';') [0];
-				Dropdowns [0].value = int.Parse(command.Split (' ') [1].Split (';') [1]);
+				Dropdowns [0].value = int.Parse(command.Split (' ') [1].Split (';') [1]) - 1;
 				Dropdowns [0].RefreshShownValue ();
 				InputFields [1].text = command.Split (' ') [1].Split (';') [2];
 				InputFields [0].onEndEdit.AddListener (delegate{ setObjectParams(x, y, InputFields [0].text, 0); });
-				Dropdowns [0].onValueChanged.AddListener (delegate{ setObjectParams(x, y, Dropdowns [0].value.ToString(), 1); });
+				Dropdowns [0].onValueChanged.AddListener (delegate{ setObjectParams(x, y, (Dropdowns [0].value + 1).ToString(), 1); });
 				InputFields [1].onEndEdit.AddListener (delegate{ setObjectParams(x, y, InputFields [1].text, 2); });
 				break;
 
@@ -215,16 +215,14 @@ public class MainGrid : MonoBehaviour {
 			case "ppia": 
 			case "psin": 
 				InputFields [0].text = command.Split (' ') [1];
-				InputFields [0].onEndEdit.AddListener (delegate{ setObjectParams(x, y, InputFields [1].text, 0); });
+				InputFields [0].onEndEdit.AddListener (delegate{ setObjectParams(x, y, InputFields [0].text, 0); });
 				break;
 		}
 	}
 	private void setObjectParams(int x, int y, string arg, int argpos){
 		string[] command = assembler.grid [x] [y].Split (' ');
 		string[] args = command [1].Split (';');
-		args [argpos] = arg;
-		for (int i = 0; i < args.Length; i++)
-			args[i] = args[i].Replace(";", "").Replace(" ", "").Replace(",", "");
+		args [argpos] = arg.Replace(";", "").Replace(" ", "").Replace(",", "");
 		assembler.grid [x] [y] = string.Join (" ", new[]{ command [0], string.Join (";", args) });
 	}
 

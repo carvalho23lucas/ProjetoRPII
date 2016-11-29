@@ -9,6 +9,7 @@ using UnityEditor;
 [System.Serializable]
 public class Interpreter
 {
+	private Dictionary<string, string> variables = new Dictionary<string, string> ();
 	private Assembler assembler;
 	private Player player;
 	private bool isPlaying = false;
@@ -38,9 +39,11 @@ public class Interpreter
 			if (lineNumber < 0 || lineNumber >= assembler.grid.Count)
 				break;
 
-			if (ExecuteCell (assembler.grid [lineNumber++], 0)) {
+			if (ExecuteCell (assembler.grid [lineNumber], 0)) {
 				yield return WaitForSecondsOrStop (8);
 			}
+
+			lineNumber++;
 
 			while (isPaused)
 				if (isStopped)
@@ -50,7 +53,7 @@ public class Interpreter
 			if (isStopped) 
 				yield break;
 		}
-		lineNumber = 0;
+		StopExecution ();
 	}
 	public void InterruptExecution ()
 	{
@@ -93,6 +96,14 @@ public class Interpreter
 					if (!compare (parameters [0], ParseIntOrDefault (parameters [1]), ParseIntOrDefault (parameters [2]))) {
 						lineNumber = findElse (lineNumber, i);
 					}
+				} else if (line [i] == "iels") {
+					int ifStart = findIf (lineNumber, i);
+					int ifEnd = findIfEnd (lineNumber, i);
+					clearVariables (ifStart + 1, ifEnd);
+					lineNumber = ifEnd;
+				} else if (line [i] == "iend") {
+					int ifStart = findIf (lineNumber, i);
+					clearVariables (ifStart + 1, lineNumber);
 				}
 				return false;
 			case 'f':
@@ -105,15 +116,15 @@ public class Interpreter
 						setVariable (parameters [0], getVariable (parameters [0]) + 1);
 					}
 
-					if (!compare (parameters [0], 4, ParseIntOrDefault (parameters [2]))) {
+					if (!compare (parameters [0], 5, ParseIntOrDefault (parameters [2]))) {
 						line [i + 1] = line [i + 1].Split (' ') [0].Replace ("fvar*", "fvar") + " " + parameters [0] + ";" + parameters [1];
 						removeVariable (lineNumber);
-						lineNumber = findForEnd (lineNumber, i) + 1;
+						lineNumber = findForEnd (lineNumber, i);
 					}
 				} else if (line [i] == "fend") {
 					int forStart = findFor (lineNumber, i);
 					clearVariables (forStart + 1, lineNumber);
-					lineNumber = forStart;
+					lineNumber = forStart - 1;
 				}
 				return false;
 			default: return false;
@@ -127,15 +138,14 @@ public class Interpreter
 	}
 	private IEnumerator WaitForSecondsOrStop(float seconds)
 	{
-		while (seconds > 0.0 && !isStopped)
+		while (seconds > -0.3 && !isStopped)
 		{
 			if (!isPaused)
-					seconds -= Time.deltaTime;
+				seconds -= Time.deltaTime;
 			yield return null;
 		}
-	}
+  	}
 
-	private Dictionary<string, string> variables = new Dictionary<string, string> ();
 	private int getVariable (string varName)
 	{
 		if (variables.ContainsKey (varName))
@@ -152,14 +162,14 @@ public class Interpreter
 	}
 	private void removeVariable (int line)
 	{
-		clearVariables (line - 1, line + 1);
+		clearVariables (line, line);
 	}
 	private void clearVariables (int startLine, int endLine)
 	{
 		List<string> keys = variables.Keys.ToList ();
 		foreach (string varName in keys) {
 			int varScope = ParseIntOrDefault (variables [varName].Split (',') [0]);
-			if (varScope > startLine && varScope < endLine)
+			if (varScope >= startLine && varScope <= endLine)
 				variables.Remove (varName);
 		}
 	}
@@ -168,22 +178,35 @@ public class Interpreter
 	{
 		int varValue = getVariable (varName);
 		switch (idCond) {
-			case 0: return varValue == value;
-			case 1: return varValue != value;
-			case 2: return varValue < value;
-			case 3: return varValue > value;
-			case 4: return varValue <= value;
-			case 5: return varValue >= value;
+			case 1: return varValue == value;
+			case 2: return varValue != value;
+			case 3: return varValue < value;
+			case 4: return varValue > value;
+			case 5: return varValue <= value;
+			case 6: return varValue >= value;
 			default: return false;
 		}
 	}
 
+	private int findIf (int currLine, int currColumn)
+	{
+		while (assembler.grid [currLine] [currColumn] != "iff")
+			currLine--;
+		return currLine;
+	}
 	private int findElse (int currLine, int currColumn)
 	{
-		while (assembler.grid [currLine] [currColumn] != "else")
+		while (assembler.grid [currLine] [currColumn] != "iels")
 			currLine++;
 		return currLine;
 	}
+	private int findIfEnd (int currLine, int currColumn)
+	{
+		while (assembler.grid [currLine] [currColumn] != "iend")
+			currLine++;
+		return currLine;
+	}
+
 	private int findFor (int currLine, int currColumn)
 	{
 		while (assembler.grid [currLine] [currColumn] != "for")
